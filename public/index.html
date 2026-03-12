@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>⚔️ BATTLE ARENA — 1v1 Duel Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=Orbitron:wght@400;700;900&family=Exo+2:ital,wght@0,300;0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #050a14;
+    --bg2: #0a1525;
+    --bg3: #0f1f35;
+    --accent: #00d4ff;
+    --accent2: #ff3c6e;
+    --accent3: #ffd93d;
+    --gold: #ffb800;
+    --green: #00ff88;
+    --panel: rgba(0,212,255,0.05);
+    --border: rgba(0,212,255,0.2);
+    --text: #e8f4ff;
+    --text2: #7ab8d4;
+    --glow: 0 0 20px rgba(0,212,255,0.4);
+    --glow2: 0 0 20px rgba(255,60,110,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* BG Grid */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+    background-size: 50px 50px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* Animated orbs */
+  .orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.3;
+    animation: orbFloat 8s ease-in-out infinite;
+  }
+  .orb1 { width: 400px; height: 400px; background: #00d4ff; top: -100px; left: -100px; animation-delay: 0s; }
+  .orb2 { width: 300px; height: 300px; background: #ff3c6e; bottom: -80px; right: -80px; animation-delay: 4s; }
+  .orb3 { width: 200px; height: 200px; background: #ffd93d; top: 50%; right: 20%; animation-delay: 2s; opacity: 0.15; }
+
+  @keyframes orbFloat {
+    0%, 100% { transform: translate(0,0); }
+    50% { transform: translate(20px, 20px); }
+  }
+
+  /* SCREENS */
+  .screen {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeIn 0.4s ease;
+  }
+  .screen.active { display: flex; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* LOGO */
+  .logo {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 6vw, 4rem);
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-align: center;
+    text-shadow: none;
+    filter: drop-shadow(0 0 30px rgba(0,212,255,0.5));
+  }
+  .logo-sub {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.9rem;
+    letter-spacing: 0.4em;
+    color: var(--text2);
+    text-align: center;
+    margin-top: 4px;
+    text-transform: uppercase;
+  }
+
+  /* PANELS */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    backdrop-filter: blur(20px);
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  }
+
+  /* INPUTS */
+  .input-group { margin-bottom: 16px; }
+  .input-label {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 6px;
+    display: block;
+  }
+  input[type="text"] {
+    width: 100%;
+    background: rgba(0,212,255,0.05);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    color: var(--text);
+    font-family: 'Exo 2', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    transition: all 0.3s;
+  }
+  input[type="text"]:focus {
+    border-color: var(--accent);
+    box-shadow: var(--glow);
+    background: rgba(0,212,255,0.08);
+  }
+
+  /* BUTTONS */
+  .btn {
+    padding: 14px 32px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.25s;
+    text-transform: uppercase;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(255,255,255,0.1);
+    transform: translateX(-100%);
+    transition: transform 0.3s;
+  }
+  .btn:hover::before { transform: translateX(0); }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: linear-gradient(135deg, var(--accent), #0099cc);
+    color: #000;
+    box-shadow: 0 4px 20px rgba(0,212,255,0.3);
+  }
+  .btn-primary:hover { box-shadow: 0 6px 30px rgba(0,212,255,0.5); transform: translateY(-2px); }
+
+  .btn-danger {
+    background: linear-gradient(135deg, var(--accent2), #cc0033);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(255,60,110,0.3);
+  }
+  .btn-danger:hover { box-shadow: 0 6px 30px rgba(255,60,110,0.5); transform: translateY(-2px); }
+
+  .btn-gold {
+    background: linear-gradient(135deg, var(--gold), #e67600);
+    color: #000;
+    box-shadow: 0 4px 20px rgba(255,184,0,0.3);
+  }
+  .btn-gold:hover { box-shadow: 0 6px 30px rgba(255,184,0,0.5); transform: translateY(-2px); }
+
+  .btn-green {
+    background: linear-gradient(135deg, var(--green), #00cc66);
+    color: #000;
+    box-shadow: 0 4px 20px rgba(0,255,136,0.3);
+  }
+  .btn-green:hover { box-shadow: 0 6px 30px rgba(0,255,136,0.5); transform: translateY(-2px); }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text2);
+  }
+  .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .btn-sm { padding: 8px 18px; font-size: 0.85rem; }
+  .btn-full { width: 100%; }
+
+  /* GAME TYPE CARDS */
+  .game-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 24px 0; }
+  .game-card {
+    background: rgba(0,0,0,0.3);
+    border: 2px solid var(--border);
+    border-radius: 14px;
+    padding: 24px 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+  }
+  .game-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--glow); }
+  .game-card.selected { border-color: var(--accent); background: rgba(0,212,255,0.1); box-shadow: var(--glow); }
+  .game-card .icon { font-size: 2.5rem; margin-bottom: 8px; display: block; }
+  .game-card .title { font-family: 'Rajdhani', sans-serif; font-size: 1.1rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+  .game-card .desc { font-size: 0.8rem; color: var(--text2); margin-top: 4px; }
+
+  /* MAIN LAYOUT - has sidebar */
+  .main-layout {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+    width: 100%;
+    max-width: 1200px;
+    min-height: 100vh;
+    padding: 20px;
+    align-items: start;
+  }
+
+  /* SIDEBAR */
+  .sidebar { display: flex; flex-direction: column; gap: 16px; }
+  
+  .sidebar-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12px;
+  }
+
+  /* LEADERBOARD */
+  .lb-entry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    transition: background 0.2s;
+    cursor: pointer;
+  }
+  .lb-entry:hover { background: rgba(0,212,255,0.05); }
+  .lb-rank {
+    font-family: 'Orbitron', monospace;
+    font-size: 0.85rem;
+    font-weight: 900;
+    width: 24px;
+    text-align: center;
+  }
+  .lb-rank.r1 { color: var(--gold); }
+  .lb-rank.r2 { color: #c0c0c0; }
+  .lb-rank.r3 { color: #cd7f32; }
+  .lb-name { flex: 1; font-size: 0.9rem; font-weight: 600; }
+  .lb-wins { font-family: 'Orbitron', monospace; font-size: 0.8rem; color: var(--green); }
+
+  /* PLAYERS ONLINE */
+  .player-entry {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid transparent;
+    transition: all 0.2s;
+  }
+  .player-entry:hover { border-color: var(--border); background: rgba(0,212,255,0.05); }
+  .player-dot { width: 8px; height: 8px; background: var(--green); border-radius: 50%; box-shadow: 0 0 8px var(--green); flex-shrink: 0; }
+  .player-name-lb { flex: 1; font-size: 0.9rem; }
+  .duel-btn {
+    padding: 4px 10px;
+    font-size: 0.7rem;
+    border-radius: 6px;
+    background: linear-gradient(135deg, var(--accent2), #cc0033);
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    transition: all 0.2s;
+  }
+  .duel-btn:hover { transform: scale(1.05); box-shadow: var(--glow2); }
+
+  /* CENTER CONTENT */
+  .center-content { display: flex; flex-direction: column; gap: 20px; }
+
+  /* PLAYER HEADER */
+  .player-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 24px;
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+  }
+  .player-info { display: flex; align-items: center; gap: 12px; }
+  .avatar {
+    width: 44px; height: 44px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', monospace;
+    font-weight: 900;
+    font-size: 1.1rem;
+    color: #000;
+  }
+  .player-nm { font-weight: 700; font-size: 1.1rem; }
+  .player-stats { font-size: 0.8rem; color: var(--text2); }
+  .stat-badges { display: flex; gap: 8px; }
+  .stat-badge {
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .win-badge { background: rgba(0,255,136,0.15); border: 1px solid var(--green); color: var(--green); }
+  .loss-badge { background: rgba(255,60,110,0.15); border: 1px solid var(--accent2); color: var(--accent2); }
+
+  /* ACTION CARDS */
+  .action-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .action-card {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 24px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .action-card::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(0,212,255,0.05), transparent);
+    opacity: 0;
+    transition: opacity 0.3s;
+  }
+  .action-card:hover::after { opacity: 1; }
+  .action-card:hover { border-color: var(--accent); transform: translateY(-4px); box-shadow: var(--glow); }
+  .action-card .ac-icon { font-size: 2.5rem; margin-bottom: 10px; }
+  .action-card .ac-title { font-family: 'Rajdhani', sans-serif; font-size: 1.2rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 4px; }
+  .action-card .ac-desc { font-size: 0.8rem; color: var(--text2); }
+
+  /* JOIN PANEL */
+  .join-input-row { display: flex; gap: 10px; }
+  .join-input-row input { flex: 1; }
+
+  /* GAME SCREEN */
+  #screen-game { padding: 20px; }
+  .game-wrapper {
+    width: 100%;
+    max-width: 900px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* SCOREBOARD */
+  .scoreboard {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 16px;
+    align-items: center;
+  }
+  .score-player {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    text-align: center;
+  }
+  .score-player.me { border-color: var(--accent); }
+  .score-player.opp { border-color: var(--accent2); }
+  .score-name { font-size: 0.85rem; color: var(--text2); font-family: 'Rajdhani', sans-serif; letter-spacing: 0.1em; text-transform: uppercase; }
+  .score-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 2.5rem;
+    font-weight: 900;
+    line-height: 1.1;
+  }
+  .score-player.me .score-num { color: var(--accent); }
+  .score-player.opp .score-num { color: var(--accent2); }
+  .vs-center { text-align: center; }
+  .vs-text { font-family: 'Orbitron', monospace; font-size: 1.5rem; font-weight: 900; color: var(--text2); }
+
+  /* TIMER */
+  .timer-bar-wrap { background: rgba(0,0,0,0.3); border-radius: 10px; overflow: hidden; height: 8px; }
+  .timer-bar { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 10px; transition: width 1s linear, background 1s; }
+  .timer-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 900;
+    text-align: center;
+    transition: color 0.3s;
+  }
+  .timer-num.urgent { color: var(--accent2); animation: pulse 0.5s ease infinite alternate; }
+  @keyframes pulse { from { transform: scale(1); } to { transform: scale(1.1); } }
+
+  /* MATH GAME */
+  .question-box {
+    background: rgba(0,0,0,0.4);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+  .question-text {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.8rem, 5vw, 3rem);
+    font-weight: 900;
+    color: var(--accent);
+    margin-bottom: 24px;
+    filter: drop-shadow(0 0 10px rgba(0,212,255,0.5));
+  }
+  .answer-input-row { display: flex; gap: 10px; max-width: 400px; margin: 0 auto; }
+  .answer-input-row input { 
+    flex: 1;
+    font-size: 1.4rem;
+    text-align: center;
+    font-family: 'Orbitron', monospace;
+    background: rgba(0,212,255,0.08);
+    border: 2px solid var(--accent);
+    border-radius: 10px;
+    padding: 14px;
+    color: var(--text);
+    outline: none;
+  }
+  .answer-input-row input:focus { box-shadow: var(--glow); }
+
+  /* CLICK GAME */
+  .click-arena {
+    background: rgba(0,0,0,0.4);
+    border: 2px solid var(--border);
+    border-radius: 16px;
+    padding: 20px;
+    position: relative;
+    height: 380px;
+    overflow: hidden;
+  }
+  .click-arena .click-hint { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); font-size: 1rem; color: var(--text2); text-align: center; pointer-events: none; }
+  .click-target {
+    position: absolute;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: radial-gradient(circle, var(--accent2) 0%, rgba(255,60,110,0.3) 100%);
+    border: 3px solid var(--accent2);
+    cursor: pointer;
+    transform: translate(-50%, -50%);
+    transition: transform 0.1s;
+    box-shadow: 0 0 25px rgba(255,60,110,0.7);
+    animation: targetPop 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    z-index: 10;
+  }
+  .click-target:hover { transform: translate(-50%, -50%) scale(1.1); }
+  @keyframes targetPop { from { transform: translate(-50%, -50%) scale(0); opacity: 0; } to { transform: translate(-50%, -50%) scale(1); opacity: 1; } }
+
+  /* HIT FEEDBACK */
+  .hit-flash {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,255,136,0.1);
+    pointer-events: none;
+    z-index: 999;
+    animation: flashFade 0.3s ease forwards;
+  }
+  @keyframes flashFade { from { opacity: 1; } to { opacity: 0; } }
+
+  /* COUNTDOWN */
+  .countdown-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,10,20,0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    backdrop-filter: blur(10px);
+  }
+  .countdown-num {
+    font-family: 'Orbitron', monospace;
+    font-size: 10rem;
+    font-weight: 900;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    animation: countPop 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+    filter: drop-shadow(0 0 40px rgba(0,212,255,0.8));
+  }
+  @keyframes countPop { from { transform: scale(2); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+  /* RESULT */
+  .result-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,10,20,0.92);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 200;
+    backdrop-filter: blur(15px);
+  }
+  .result-box {
+    text-align: center;
+    animation: resultIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    max-width: 500px;
+    padding: 20px;
+  }
+  @keyframes resultIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  .result-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(2rem, 8vw, 4rem);
+    font-weight: 900;
+    margin-bottom: 20px;
+    filter: drop-shadow(0 0 30px currentColor);
+  }
+  .result-title.win { color: var(--green); }
+  .result-title.lose { color: var(--accent2); }
+  .result-title.draw { color: var(--gold); }
+  .result-scores { display: flex; gap: 24px; justify-content: center; margin-bottom: 24px; }
+  .result-score-item { text-align: center; }
+  .result-score-name { font-size: 0.85rem; color: var(--text2); margin-bottom: 4px; }
+  .result-score-num { font-family: 'Orbitron', monospace; font-size: 2.5rem; font-weight: 900; }
+
+  /* DUEL INVITE MODAL */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(5,10,20,0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 300;
+    backdrop-filter: blur(10px);
+  }
+  .modal-box {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 32px;
+    max-width: 420px;
+    width: 90%;
+    text-align: center;
+    animation: resultIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .modal-icon { font-size: 3rem; margin-bottom: 16px; }
+  .modal-title { font-family: 'Orbitron', monospace; font-size: 1.2rem; font-weight: 700; margin-bottom: 8px; }
+  .modal-desc { color: var(--text2); margin-bottom: 24px; font-size: 0.95rem; }
+  .modal-btns { display: flex; gap: 12px; justify-content: center; }
+
+  /* STATUS MSG */
+  .status-msg {
+    text-align: center;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 1rem;
+    color: var(--text2);
+    letter-spacing: 0.1em;
+  }
+
+  /* WAITING READY */
+  .ready-panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+  }
+  .ready-title { font-family: 'Orbitron', monospace; font-size: 1.2rem; margin-bottom: 8px; }
+  .ready-subtitle { color: var(--text2); margin-bottom: 24px; }
+  .ready-indicators { display: flex; gap: 24px; justify-content: center; margin-bottom: 24px; }
+  .ready-player-ind {
+    text-align: center;
+    padding: 16px 24px;
+    border-radius: 12px;
+    border: 2px solid var(--border);
+    transition: all 0.3s;
+    min-width: 120px;
+  }
+  .ready-player-ind.ready { border-color: var(--green); background: rgba(0,255,136,0.1); }
+  .ready-player-ind .rpn { font-size: 0.9rem; font-weight: 700; margin-bottom: 4px; }
+  .ready-player-ind .rps { font-size: 0.8rem; color: var(--text2); }
+  .ready-player-ind.ready .rps { color: var(--green); }
+
+  /* ROOM CODE */
+  .room-code-box {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 20px;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    margin: 12px auto;
+  }
+  .room-code-label { font-size: 0.8rem; color: var(--text2); font-family: 'Rajdhani', sans-serif; letter-spacing: 0.2em; text-transform: uppercase; }
+  .room-code-val { font-family: 'Orbitron', monospace; font-size: 1.5rem; font-weight: 900; color: var(--accent); letter-spacing: 0.2em; }
+
+  /* TOASTS */
+  .toast-container { position: fixed; top: 20px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 8px; }
+  .toast {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 16px;
+    font-size: 0.9rem;
+    animation: toastIn 0.3s ease;
+    max-width: 300px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  @keyframes toastIn { from { transform: translateX(100%); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
+  .toast.success { border-color: var(--green); }
+  .toast.error { border-color: var(--accent2); }
+  .toast.info { border-color: var(--accent); }
+
+  /* CORRECT FLASH */
+  .correct-indicator {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Orbitron', monospace;
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--green);
+    pointer-events: none;
+    z-index: 500;
+    animation: correctPop 0.6s ease forwards;
+  }
+  @keyframes correctPop { 0% { transform: translate(-50%,-50%) scale(0.5); opacity: 1; } 100% { transform: translate(-50%,-80%) scale(1); opacity: 0; } }
+
+  /* WRONG SHAKE */
+  @keyframes shake {
+    0%,100% { transform: translateX(0); }
+    20%,60% { transform: translateX(-8px); }
+    40%,80% { transform: translateX(8px); }
+  }
+  .shake { animation: shake 0.4s ease; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: rgba(0,212,255,0.3); border-radius: 4px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .main-layout { grid-template-columns: 1fr; }
+    .sidebar { order: 2; }
+    .action-cards { grid-template-columns: 1fr; }
+    .game-cards { grid-template-columns: 1fr; }
+  }
+
+  .hidden { display: none !important; }
+  .mb8 { margin-bottom: 8px; }
+  .mb16 { margin-bottom: 16px; }
+  .mb24 { margin-bottom: 24px; }
+  .text-center { text-align: center; }
+  .flex-row { display: flex; gap: 10px; }
+  .flex-col { display: flex; flex-direction: column; gap: 10px; }
+</style>
+</head>
+<body>
+<div class="orb orb1"></div>
+<div class="orb orb2"></div>
+<div class="orb orb3"></div>
+
+<div class="toast-container" id="toasts"></div>
+
+<!-- ============ SCREEN: REGISTER ============ -->
+<div class="screen active" id="screen-register">
+  <div class="panel" style="width:100%;max-width:420px;">
+    <div class="mb24 text-center">
+      <div class="logo">⚔️ BATTLE ARENA</div>
+      <div class="logo-sub">1v1 Duel Platform</div>
+    </div>
+    <div class="input-group">
+      <label class="input-label">Ism</label>
+      <input type="text" id="inp-name" placeholder="Ismingizni kiriting" />
+    </div>
+    <div class="input-group mb24">
+      <label class="input-label">Familiya</label>
+      <input type="text" id="inp-surname" placeholder="Familiyangizni kiriting" />
+    </div>
+    <button class="btn btn-primary btn-full" onclick="register()">⚡ KIRISH</button>
+    <p id="reg-status" style="text-align:center;margin-top:12px;color:var(--text2);font-size:0.85rem;"></p>
+  </div>
+</div>
+
+<!-- ============ SCREEN: LOBBY ============ -->
+<div class="screen" id="screen-lobby">
+  <div class="main-layout">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
+      <!-- Leaderboard -->
+      <div class="panel">
+        <div class="sidebar-title">🏆 Reyting Jadvali</div>
+        <div id="leaderboard-list"></div>
+      </div>
+      <!-- Online Players -->
+      <div class="panel">
+        <div class="sidebar-title">🟢 Online O'yinchilar</div>
+        <div id="players-list"></div>
+      </div>
+    </aside>
+    
+    <!-- CENTER -->
+    <div class="center-content">
+      <!-- Player header -->
+      <div class="player-header">
+        <div class="player-info">
+          <div class="avatar" id="avatar-initials">AB</div>
+          <div>
+            <div class="player-nm" id="lobby-playername">-</div>
+            <div class="player-stats">Battle Arena O'yinchisi</div>
+          </div>
+        </div>
+        <div class="stat-badges">
+          <div class="stat-badge win-badge">🏆 <span id="stat-wins">0</span> G'alaba</div>
+          <div class="stat-badge loss-badge">💀 <span id="stat-losses">0</span> Mag'lub</div>
+        </div>
+      </div>
+
+      <!-- NEW GAME -->
+      <div class="panel">
+        <div class="sidebar-title mb16">🎮 Yangi O'yin</div>
+        <p style="color:var(--text2);font-size:0.9rem;margin-bottom:16px;">O'yin turini tanlang:</p>
+        <div class="game-cards">
+          <div class="game-card" id="card-math" onclick="selectGame('math')">
+            <span class="icon">🧮</span>
+            <div class="title">Matematik Jang</div>
+            <div class="desc">Matematik masalalarni tez yeching</div>
+          </div>
+          <div class="game-card" id="card-click" onclick="selectGame('click')">
+            <span class="icon">🎯</span>
+            <div class="title">Tez Bosish</div>
+            <div class="desc">Maqsadlarga tez bosing</div>
+          </div>
+        </div>
+        <div class="flex-row" style="margin-top:8px;">
+          <button class="btn btn-primary" style="flex:1;" onclick="createRoom()">🚀 XONA YARATISH</button>
+        </div>
+      </div>
+
+      <!-- JOIN ROOM -->
+      <div class="panel">
+        <div class="sidebar-title mb16">🔗 Xonaga Qo'shilish</div>
+        <div class="join-input-row">
+          <input type="text" id="inp-roomcode" placeholder="Xona kodi..." style="text-transform:uppercase;font-family:Orbitron,monospace;letter-spacing:0.2em;" maxlength="6" />
+          <button class="btn btn-gold" onclick="joinRoom()">KIRISH</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN: WAITING ============ -->
+<div class="screen" id="screen-waiting">
+  <div style="width:100%;max-width:500px;">
+    <div class="text-center mb24">
+      <div class="logo" style="font-size:2rem;">⚔️ BATTLE ARENA</div>
+    </div>
+    <div class="ready-panel">
+      <div class="ready-title" id="wait-gamemode">Matematik Jang</div>
+      <div class="ready-subtitle">Raqibingiz tayyor bo'lishini kuting...</div>
+      
+      <div class="room-code-box text-center" id="room-code-display" style="display:none;">
+        <div>
+          <div class="room-code-label">Xona Kodi</div>
+          <div class="room-code-val" id="room-code-val">------</div>
+        </div>
+      </div>
+      
+      <div class="ready-indicators">
+        <div class="ready-player-ind" id="rp1">
+          <div class="rpn" id="rp1-name">Siz</div>
+          <div class="rps" id="rp1-status">Tayyor emas</div>
+        </div>
+        <div style="font-family:Orbitron,monospace;font-size:1.5rem;font-weight:900;color:var(--text2);align-self:center;">VS</div>
+        <div class="ready-player-ind" id="rp2">
+          <div class="rpn" id="rp2-name">Raqib</div>
+          <div class="rps" id="rp2-status">Kutilmoqda...</div>
+        </div>
+      </div>
+      
+      <button class="btn btn-green btn-full" id="btn-ready" onclick="setReady()">✅ TAYYOR MAN!</button>
+      <button class="btn btn-outline btn-full" style="margin-top:8px;" onclick="goLobby()">← Orqaga</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ SCREEN: GAME ============ -->
+<div class="screen" id="screen-game">
+  <div class="game-wrapper">
+    <!-- Scoreboard -->
+    <div class="scoreboard">
+      <div class="score-player me">
+        <div class="score-name" id="my-name-game">SIZ</div>
+        <div class="score-num" id="my-score">0</div>
+      </div>
+      <div class="vs-center">
+        <div class="vs-text">VS</div>
+        <div class="timer-num" id="timer-display">60</div>
+      </div>
+      <div class="score-player opp">
+        <div class="score-name" id="opp-name-game">RAQIB</div>
+        <div class="score-num" id="opp-score">0</div>
+      </div>
+    </div>
+    <div class="timer-bar-wrap">
+      <div class="timer-bar" id="timer-bar" style="width:100%"></div>
+    </div>
+
+    <!-- Math Game Area -->
+    <div id="math-area" class="hidden">
+      <div class="question-box">
+        <div class="question-text" id="question-display">?</div>
+        <div class="answer-input-row">
+          <input type="number" id="answer-input" placeholder="Javob..." autocomplete="off" onkeydown="mathKeydown(event)" />
+          <button class="btn btn-primary" onclick="submitAnswer()">✓</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Click Game Area -->
+    <div id="click-area" class="hidden">
+      <div class="click-arena" id="click-arena">
+        <div class="click-hint" id="click-hint">O'yin boshlanmoqda...</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ============ COUNTDOWN OVERLAY ============ -->
+<div class="countdown-overlay hidden" id="countdown-overlay">
+  <div class="countdown-num" id="countdown-num">3</div>
+</div>
+
+<!-- ============ RESULT OVERLAY ============ -->
+<div class="result-overlay hidden" id="result-overlay">
+  <div class="result-box">
+    <div class="result-title" id="result-title">G'ALABA!</div>
+    <div class="result-scores">
+      <div class="result-score-item">
+        <div class="result-score-name" id="res-p1-name">-</div>
+        <div class="result-score-num" id="res-p1-score" style="color:var(--accent);">0</div>
+      </div>
+      <div style="font-family:Orbitron,monospace;font-size:2rem;color:var(--text2);align-self:center;">:</div>
+      <div class="result-score-item">
+        <div class="result-score-name" id="res-p2-name">-</div>
+        <div class="result-score-num" id="res-p2-score" style="color:var(--accent2);">0</div>
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="goLobby()" style="margin-bottom:10px;min-width:200px;">🏠 Lobbyga Qaytish</button>
+    <br>
+    <button class="btn btn-gold" onclick="rematch()" style="min-width:200px;">🔄 Qayta O'ynash</button>
+  </div>
+</div>
+
+<!-- ============ DUEL INVITE MODAL ============ -->
+<div class="modal-overlay hidden" id="duel-modal">
+  <div class="modal-box">
+    <div class="modal-icon">⚔️</div>
+    <div class="modal-title">DUELGA CHAQIRILMOQDASIZ!</div>
+    <div class="modal-desc" id="duel-modal-desc">O'yinchi sizni duelga chaqirmoqda</div>
+    
+    <p style="font-size:0.85rem;color:var(--text2);margin-bottom:16px;">O'yin turini tanlang:</p>
+    <div class="game-cards" style="margin:0 0 16px 0;">
+      <div class="game-card" id="duel-card-math" onclick="selectDuelGame('math')">
+        <span class="icon">🧮</span>
+        <div class="title">Matematik</div>
+      </div>
+      <div class="game-card" id="duel-card-click" onclick="selectDuelGame('click')">
+        <span class="icon">🎯</span>
+        <div class="title">Tez Bosish</div>
+      </div>
+    </div>
+    
+    <div class="modal-btns">
+      <button class="btn btn-danger" onclick="declineDuel()">❌ Rad etish</button>
+      <button class="btn btn-green" onclick="acceptDuel()">✅ Qabul qilish</button>
+    </div>
+  </div>
+</div>
+
+<script src="game.js"></script>
+</body>
+</html>
